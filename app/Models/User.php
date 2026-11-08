@@ -51,4 +51,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(CustomerComplaint::class, 'handled_by');
     }
+
+    /**
+     * Memeriksa apakah user memiliki role tertentu (super_admin bypass semua check)
+     */
+    public function hasRole(...$roles): bool
+    {
+        if (!$this->relationLoaded('role')) {$this->load('role');
+        }
+
+        $userRoleName =$this->role?->name;
+
+        if ($userRoleName === 'super_admin') {
+            return true;
+        }
+
+        return in_array($userRoleName,$roles, true);
+    }
 }

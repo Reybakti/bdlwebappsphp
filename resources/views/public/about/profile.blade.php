@@ -31,8 +31,10 @@
     <div class="max-w-7xl mx-auto px-4 lg:px-8">
         <div class="flex items-center gap-6 overflow-x-auto text-xs font-semibold text-slate-600 py-3.5 scrollbar-none">
             <a href="#sejarah" class="hover:text-bdl-primary transition whitespace-nowrap">Sejarah & Pendirian</a>
+            @if(($profile->video_source_type === 'URL' && !empty($profile->video_url)) || ($profile->video_source_type === 'UPLOAD' && !empty($profile->video_file_path)))
+                <a href="#video-profil" class="hover:text-bdl-primary transition whitespace-nowrap text-bdl-primary font-bold">Video Profil</a>
+            @endif
             <a href="#visi-misi" class="hover:text-bdl-primary transition whitespace-nowrap">Visi & Misi</a>
-            <a href="#kontak-resmi" class="hover:text-bdl-primary transition whitespace-nowrap">Kontak & Alamat Pusat</a>
             <a href="#legalitas" class="hover:text-bdl-primary transition whitespace-nowrap">Legalitas & Kepatuhan</a>
             <a href="{{ route('about.management') }}" class="text-bdl-primary hover:text-bdl-navy transition whitespace-nowrap font-bold">Struktur Manajemen &rarr;</a>
         </div>
@@ -42,7 +44,7 @@
 <!-- Konten Utama Profil Murni Database -->
 <div class="max-w-7xl mx-auto px-4 lg:px-8 py-16 space-y-20">
 
-    <!-- 1. Sejarah & Ringkasan Perjalanan (Dinamis dari kolom: history) -->
+    <!-- 1. Sejarah & Ringkasan Perjalanan -->
     <section id="sejarah" class="scroll-mt-36">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
             <div class="lg:col-span-7 space-y-5">
@@ -63,19 +65,19 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4">
                     <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <span class="text-2xl sm:text-3xl font-extrabold font-num text-bdl-primary block">
-                            {{ $totalBranchesCount }}
+                            {{ $totalBranchesCount ?? 33 }}
                         </span>
                         <span class="text-[11px] text-slate-500 font-medium">Kantor Layanan Aktif</span>
                     </div>
                     <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <span class="text-2xl sm:text-3xl font-extrabold font-num text-bdl-navy block">
-                            {{ $directorsCount }}
+                            {{ $directorsCount ?? 2 }}
                         </span>
                         <span class="text-[11px] text-slate-500 font-medium">Anggota Direksi</span>
                     </div>
                     <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 col-span-2 sm:col-span-1">
                         <span class="text-2xl sm:text-3xl font-extrabold font-num text-emerald-600 block">
-                            {{ $commissionersCount }}
+                            {{ $commissionersCount ?? 2 }}
                         </span>
                         <span class="text-[11px] text-slate-500 font-medium">Dewan Komisaris</span>
                     </div>
@@ -109,7 +111,7 @@
                             </div>
                             <div>
                                 <span class="text-slate-400 block text-[11px]">Email Resmi:</span>
-                                <span class="font-medium text-bdl-navy">{{ $profile->email ?? '-' }}</span>
+                                <span class="font-medium text-bdl-navy truncate block">{{ $profile->email ?? '-' }}</span>
                             </div>
                         </div>
                     </div>
@@ -118,7 +120,47 @@
         </div>
     </section>
 
-    <!-- 2. Visi & Misi Lembaga (Dinamis dari kolom: vision & mission) -->
+    <!-- 2. Section Video Profil Perusahaan (Jika Tersedia) -->
+    @php
+        $hasVideoUrl = ($profile->video_source_type === 'URL' && !empty($profile->video_url));
+        $hasVideoUpload = ($profile->video_source_type === 'UPLOAD' && !empty($profile->video_file_path));
+    @endphp
+
+    @if($hasVideoUrl || $hasVideoUpload)
+        <section id="video-profil" class="scroll-mt-36 p-6 sm:p-10 rounded-3xl bg-slate-900 text-white space-y-6">
+            <div class="max-w-2xl space-y-2">
+                <span class="text-xs font-bold text-bdl-soft uppercase tracking-wider block">Tayangan Multimedia</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                    {{ $profile->video_title ?? 'Video Profil Bank Daerah Lamongan' }}
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300">
+                    Mengenal lebih dekat dedikasi dan kontribusi nyata kami bagi penguatan ekonomi masyarakat di Lamongan.
+                </p>
+            </div>
+
+            <!-- Kontainer Video Responsif -->
+            <div class="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black border border-white/10">
+                @if($profile->video_source_type === 'URL')
+                    @php
+                        $embedUrl = $profile->youtube_embed_url;
+                    @endphp
+                    <iframe src="{{ $embedUrl }}" 
+                            title="{{ $profile->video_title ?? 'Video Profil' }}" 
+                            class="w-full h-full"
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen></iframe>
+                @else
+                    <video controls playsinline class="w-full h-full object-contain">
+                        <source src="{{ asset('storage/' . $profile->video_file_path) }}" type="video/mp4">
+                        Peramban Anda tidak mendukung pemutar video HTML5.
+                    </video>
+                @endif
+            </div>
+        </section>
+    @endif
+
+    <!-- 3. Visi & Misi Lembaga -->
     <section id="visi-misi" class="scroll-mt-36 py-12 bg-slate-50 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 border-y border-slate-200">
         <div class="max-w-7xl mx-auto space-y-10">
             <div class="text-center max-w-xl mx-auto space-y-2">
@@ -167,7 +209,7 @@
         </div>
     </section>
 
-    <!-- 3. Legalitas & Pernyataan Kepatuhan OJK/LPS (Dinamis dari kolom: ojk_lps_statement) -->
+    <!-- 4. Legalitas & Pernyataan Kepatuhan OJK/LPS -->
     <section id="legalitas" class="scroll-mt-36 p-8 rounded-3xl bg-slate-50 border border-slate-200 space-y-6">
         <div class="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>

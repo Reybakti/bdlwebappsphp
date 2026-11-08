@@ -6,14 +6,19 @@ use App\Models\Article;
 use App\Models\Banner;
 use App\Models\Branch;
 use App\Models\CompanyProfile;
+use App\Models\CsrProgram;
 use App\Models\FinancialReport;
 use App\Models\LpsInterestRate;
 use App\Models\ManagementMember;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
 {
+    /**
+     * Halaman Beranda (Home)
+     */
     public function index()
     {
         // 1. Banner Slider Aktif Terurut
@@ -79,10 +84,15 @@ class PublicController extends Controller
         ));
     }
 
+    /**
+     * Profil Lembaga & Legalitas
+     */
     public function aboutProfile()
     {
-        $profile = CompanyProfile::first();$totalBranchesCount = Branch::where('is_active', true)->count();
-        $commissionersCount = ManagementMember::where('is_active', true)->where('type', 'COMMISSIONER')->count();$directorsCount = ManagementMember::where('is_active', true)->where('type', 'DIRECTOR')->count();
+        $profile = CompanyProfile::first();
+        $totalBranchesCount = Branch::where('is_active', true)->count();
+        $commissionersCount = ManagementMember::where('is_active', true)->where('type', 'COMMISSIONER')->count();
+        $directorsCount = ManagementMember::where('is_active', true)->where('type', 'DIRECTOR')->count();
 
         return view('public.about.profile', compact(
             'profile',
@@ -92,17 +102,18 @@ class PublicController extends Controller
         ));
     }
 
+    /**
+     * Dewan Direksi & Dewan Komisaris
+     */
     public function aboutManagement()
     {
         $profile = CompanyProfile::first();
 
-        // 1. Dewan Komisaris Aktif
         $commissioners = ManagementMember::where('is_active', true)
             ->where('type', 'COMMISSIONER')
             ->orderBy('order_index')
             ->get();
 
-        // 2. Direksi Aktif
         $directors = ManagementMember::where('is_active', true)
             ->where('type', 'DIRECTOR')
             ->orderBy('order_index')
@@ -169,22 +180,58 @@ class PublicController extends Controller
         return view('public.transparency.gcg', compact('profile', 'reports', 'availableYears'));
     }
 
-    public function branches()
+    /**
+     * Halaman Jaringan Kantor & Titik Layanan
+     */
+    public function branches(Request $request)
     {
-        $branches = Branch::where('is_active', true)->get();
-        return view('public.services.branches', compact('branches'));
+        $profile = CompanyProfile::first();
+
+        $query = Branch::where('is_active', true);
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('address', 'like', '%' . $search . '%');
+            });
+        }
+
+        $branches = $query->orderByRaw("FIELD(type, 'HEAD_OFFICE', 'BRANCH', 'CASH_OFFICE')")
+            ->orderBy('name')
+            ->get();
+
+        $totalBranches = Branch::where('is_active', true)->count();
+        $headOffice = Branch::where('is_active', true)->where('type', 'HEAD_OFFICE')->first();
+        $branchCount = Branch::where('is_active', true)->where('type', 'BRANCH')->count();
+        $cashOfficeCount = Branch::where('is_active', true)->where('type', 'CASH_OFFICE')->count();
+
+        return view('public.services.branches', compact(
+            'profile',
+            'branches',
+            'headOffice',
+            'totalBranches',
+            'branchCount',
+            'cashOfficeCount'
+        ));
     }
+
+    /**
+     * Halaman Produk Pinjaman / Kredit
+     */
     public function loanProducts()
     {
         $profile = CompanyProfile::first();
 
-        // 1. Ambil seluruh produk pinjaman/kredit aktif beserta parameter simulasinya
         $loanProducts = Product::with(['category', 'simulationParam'])
             ->whereHas('category', fn($q) => $q->where('slug', 'kredit'))
             ->where('is_active', true)
             ->get();
 
-        // 2. Produk kredit utama untuk kalkulator default
         $primaryLoan = $loanProducts->where('is_featured', true)->first() ?? $loanProducts->first();
 
         return view('public.products.loan', compact('profile', 'loanProducts', 'primaryLoan'));
@@ -197,12 +244,10 @@ class PublicController extends Controller
     {
         $profile = CompanyProfile::first();
 
-        // 1. Suku Bunga LPS Aktif Saat Ini
         $currentRate = LpsInterestRate::where('is_current', true)
             ->latest('effective_start_date')
             ->first();
 
-        // 2. Riwayat Perubahan Suku Bunga LPS
         $rateHistories = LpsInterestRate::orderByDesc('effective_start_date')
             ->paginate(10);
 
@@ -216,16 +261,211 @@ class PublicController extends Controller
     {
         $profile = CompanyProfile::first();
 
-        // Query Produk Aktif beserta Kategori dan Parameter Simulasinya
         $query = Product::with(['category', 'simulationParam'])->where('is_active', true);
 
-        // Filter berdasarkan kategori jika dipilih (tabungan, deposito, kredit)
         if ($request->filled('category')) {
             $query->whereHas('category', fn($q) => $q->where('slug', $request->category));
         }
 
-        $products = $query->orderBy('category_id')->orderBy('order_index')->get();
+        $products = $query->orderBy('category_id')->orderBy('id')->get();
 
         return view('public.transparency.riplay', compact('profile', 'products'));
+    }
+
+    /**
+     * 1. Berita & Agenda
+     */
+    public function mediaNews(Request $request)
+    {
+        $profile = CompanyProfile::first();
+
+        $query = Article::with('category')
+            ->where('status', 'PUBLISHED')
+            ->whereHas('category', function ($q) {
+                $q->where('slug', 'like', '%berita%')
+                  ->orWhere('slug', 'like', '%agenda%')
+                  ->orWhere('name', 'like', '%Berita%');
+            });
+
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        $articles = $query->latest('published_at')->paginate(9)->withQueryString();
+        $pageTitle = 'Berita & Agenda Kegiatan';
+        $pageSubtitle = 'Informasi terkini mengenai agenda korporasi, kegiatan cabang, dan warta resmi lembaga.';
+        $activeCategory = 'berita';
+
+        return view('public.media.index', compact('profile', 'articles', 'pageTitle', 'pageSubtitle', 'activeCategory'));
+    }
+
+    /**
+     * 2. Edukasi & Literasi Keuangan
+     */
+    public function mediaEducation(Request $request)
+    {
+        $profile = CompanyProfile::first();
+
+        $query = Article::with('category')
+            ->where('status', 'PUBLISHED')
+            ->whereHas('category', function ($q) {
+                $q->where('slug', 'like', '%edukasi%')
+                  ->orWhere('slug', 'like', '%literasi%')
+                  ->orWhere('name', 'like', '%Edukasi%')
+                  ->orWhere('name', 'like', '%Literasi%');
+            });
+
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        $articles = $query->latest('published_at')->paginate(9)->withQueryString();
+        $pageTitle = 'Edukasi & Literasi Keuangan';
+        $pageSubtitle = 'Materi panduan inklusi keuangan, tips mengelola angsuran kredit, keamanan bertransaksi, dan menabung sejak dini.';
+        $activeCategory = 'edukasi';
+
+        return view('public.media.index', compact('profile', 'articles', 'pageTitle', 'pageSubtitle', 'activeCategory'));
+    }
+
+    /**
+     * 3. Pengumuman & Lelang Agunan
+     */
+    public function mediaAnnouncements(Request $request)
+    {
+        $profile = CompanyProfile::first();
+
+        $query = Article::with('category')
+            ->where('status', 'PUBLISHED')
+            ->whereHas('category', function ($q) {
+                $q->where('slug', 'like', '%pengumuman%')
+                  ->orWhere('slug', 'like', '%lelang%')
+                  ->orWhere('name', 'like', '%Pengumuman%')
+                  ->orWhere('name', 'like', '%Lelang%');
+            });
+
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        $articles = $query->latest('published_at')->paginate(9)->withQueryString();
+        $pageTitle = 'Pengumuman Resmi & Lelang Agunan';
+        $pageSubtitle = 'Pemberitahuan operasional libur hari raya, informasi lelang eksekusi hak tanggungan, dan keterbukaan informasi publik.';
+        $activeCategory = 'pengumuman';
+
+        return view('public.media.index', compact('profile', 'articles', 'pageTitle', 'pageSubtitle', 'activeCategory'));
+    }
+
+    /**
+     * Halaman Detail Artikel / Berita
+     */
+    public function mediaShow($slug)
+    {
+        $profile = CompanyProfile::first();
+
+        $article = Article::with('category')
+            ->where('status', 'PUBLISHED')
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        $relatedArticles = Article::with('category')
+            ->where('status', 'PUBLISHED')
+            ->where('id', '!=', $article->id)
+            ->where('category_id', $article->category_id)
+            ->latest('published_at')
+            ->take(4)
+            ->get();
+
+        return view('public.media.show', compact('profile', 'article', 'relatedArticles'));
+    }
+
+    /**
+     * Halaman Daftar Lowongan Karier
+     */
+    public function careers(Request $request)
+    {
+        $profile = CompanyProfile::first();
+
+        $query = DB::table('career_postings')
+            ->where('is_active', true)
+            ->where('deadline', '>=', now()->toDateString());
+
+        if ($request->filled('q')) {
+            $query->where('title', 'like', '%' . $request->q . '%');
+        }
+
+        $vacancies = $query->orderBy('deadline', 'asc')->get();
+
+        return view('public.services.career', compact('profile', 'vacancies'));
+    }
+
+    /**
+     * Halaman Rincian Lowongan & Formulir Lamaran
+     */
+    public function careerDetail($slug)
+    {
+        $profile = CompanyProfile::first();
+
+        $vacancy = DB::table('career_postings')
+            ->where('is_active', true)
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return view('public.services.career-detail', compact('profile', 'vacancy'));
+    }
+
+    /**
+     * Halaman Publik: Daftar Program CSR
+     */
+    public function csrIndex(Request $request)
+    {
+        $profile = CompanyProfile::first();
+
+        $query = CsrProgram::where('is_published', true);
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('q')) {
+            $search = $request->q;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                  ->orWhere('location', 'like', '%' . $search . '%')
+                  ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        $programs = $query->latest('activity_date')->paginate(9)->withQueryString();
+
+        $counts = [
+            'all' => CsrProgram::where('is_published', true)->count(),
+            'umkm' => CsrProgram::where('is_published', true)->where('category', 'PEMBERDAYAAN_UMKM')->count(),
+            'pendidikan' => CsrProgram::where('is_published', true)->where('category', 'PENDIDIKAN_LITERASI')->count(),
+            'sosial' => CsrProgram::where('is_published', true)->where('category', 'SOSIAL_KEMASYARAKATAN')->count(),
+            'lingkungan' => CsrProgram::where('is_published', true)->where('category', 'LINGKUNGAN_HIDUP')->count(),
+        ];
+
+        return view('public.csr.index', compact('profile', 'programs', 'counts'));
+    }
+
+    /**
+     * Halaman Publik: Rincian Kegiatan CSR & Galeri Foto
+     */
+    public function csrDetail($slug)
+    {
+        $profile = CompanyProfile::first();
+
+        $program = CsrProgram::with('galleryImages')
+            ->where('slug', $slug)
+            ->where('is_published', true)
+            ->firstOrFail();
+
+        $otherPrograms = CsrProgram::where('is_published', true)
+            ->where('id', '!=', $program->id)
+            ->latest('activity_date')
+            ->take(3)
+            ->get();
+
+        return view('public.csr.detail', compact('profile', 'program', 'otherPrograms'));
     }
 }

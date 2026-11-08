@@ -131,6 +131,9 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // 4. Jaringan Kantor Cabang & Kas
         // ==========================================
+        // ==========================================
+        // 4. Jaringan Kantor Cabang & Kas
+        // ==========================================
         $branchData = [
             [
                 'name' => 'Kantor Pusat Lamongan',
@@ -138,6 +141,7 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Jl. Panglima Sudirman No. 85, Sukorejo, Kec. Lamongan, Kab. Lamongan',
                 'phone' => '(0322) 321175',
                 'whatsapp' => '081234567890',
+                'email' => 'sekretariat@bdl.co.id',
                 'latitude' => -7.11985400,
                 'longitude' => 112.41432100,
                 'google_maps_url' => 'https://maps.google.com/?q=-7.119854,112.414321',
@@ -149,6 +153,7 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Jl. Raya Babat - Surabaya No. 120, Kec. Babat, Kab. Lamongan',
                 'phone' => '(0322) 451230',
                 'whatsapp' => '081234567891',
+                'email' => 'cabang.babat@bdl.co.id',
                 'latitude' => -7.11452100,
                 'longitude' => 112.16321400,
                 'google_maps_url' => 'https://maps.google.com/?q=-7.114521,112.163214',
@@ -160,6 +165,7 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Jl. Babat - Jombang No. 45, Kec. Ngimbang, Kab. Lamongan',
                 'phone' => '(0322) 456781',
                 'whatsapp' => '081234567892',
+                'email' => 'cabang.ngimbang@bdl.co.id',
                 'latitude' => -7.26123000,
                 'longitude' => 112.24152000,
                 'google_maps_url' => 'https://maps.google.com/?q=-7.261230,112.241520',
@@ -171,6 +177,7 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Pasar Karanggeneng Blok A No. 3, Kec. Karanggeneng, Kab. Lamongan',
                 'phone' => '(0322) 332145',
                 'whatsapp' => '081234567893',
+                'email' => 'kas.karanggeneng@bdl.co.id',
                 'latitude' => -7.02145200,
                 'longitude' => 112.38125400,
                 'google_maps_url' => 'https://maps.google.com/?q=-7.021452,112.381254',
@@ -179,7 +186,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($branchData as $branch) {
-            Branch::firstOrCreate(['name' => $branch['name']], $branch);
+            Branch::updateOrCreate(['name' => $branch['name']], $branch);
         }
 
         // ==========================================

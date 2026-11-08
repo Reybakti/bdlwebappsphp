@@ -95,7 +95,7 @@
                             <svg class="w-3 h-3 opacity-70 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div class="absolute top-full left-0 w-64 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 transform group-hover:translate-y-0 translate-y-1">
-                            <a href="{{ route('products.savings') }}#tabungan" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Tabungan</a>
+                            <a href="{{ route('products.savings') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Tabungan</a>
                             <a href="{{ route('products.deposit') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Deposito Berjangka</a>
                             <a href="{{ route('products.loan') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Kredit & Pembiayaan</a>
                             <div class="border-t border-slate-100 my-1"></div>
@@ -114,6 +114,9 @@
                             <a href="{{ route('transparency.gcg') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Laporan Tata Kelola (GCG)</a>
                             <a href="{{ route('transparency.lps') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Tingkat Bunga Penjaminan LPS</a>
                             <a href="{{ route('transparency.riplay') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Ringkasan Informasi Produk (RIPLAY)</a>
+                            <a href="{{ route('about.csr') }}" class="block px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-[#0066B2]">
+    Tanggung Jawab Sosial (CSR)
+</a>
                         </div>
                     </div>
 
@@ -124,9 +127,9 @@
                             <svg class="w-3 h-3 opacity-70 transition-transform duration-200 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </button>
                         <div class="absolute top-full left-0 w-60 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 transform group-hover:translate-y-0 translate-y-1">
-                            <a href="{{ route('home') }}#warta" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Berita & Agenda</a>
-                            <a href="{{ route('home') }}#edukasi" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Edukasi & Literasi Keuangan</a>
-                            <a href="{{ route('home') }}#pengumuman" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Pengumuman & Lelang Agunan</a>
+                            <a href="{{ route('media.news') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Berita & Agenda</a>
+                            <a href="{{ route('media.education') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Edukasi & Literasi Keuangan</a>
+                            <a href="{{ route('media.announcements') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Pengumuman & Lelang Agunan</a>
                         </div>
                     </div>
 
@@ -146,7 +149,7 @@
                             <a href="{{ route('services.ticket') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Cek Status Tiket Pengaduan</a>
                             <div class="border-t border-slate-100 my-1"></div>
                             <a href="{{ route('services.wbs') }}" class="block px-4 py-2 text-rose-700 hover:bg-rose-50 transition text-xs font-bold">Whistleblowing System (WBS)</a>
-                            <a href="{{ route('home') }}#karier" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Karier / Rekrutmen</a>
+                            <a href="{{ route('services.career') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Karier / Rekrutmen</a>
                         </div>
                     </div>
 
@@ -193,7 +196,7 @@
                     <svg class="w-3.5 h-3.5 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pl-3 py-1 space-y-1.5 text-slate-300 text-[11px]">
-                    <a href="{{ route('products.savings') }}#tabungan" class="block py-1">Tabungan</a>
+                    <a href="{{ route('products.savings') }}" class="block py-1">Tabungan</a>
                     <a href="{{ route('products.deposit') }}" class="block py-1">Deposito Berjangka</a>
                     <a href="{{ route('products.loan') }}" class="block py-1">Kredit & Pembiayaan</a>
                     <a href="{{ route('home') }}#simulasi-section" class="block py-1 text-bdl-soft font-bold">Simulasi Kalkulator (Kredit & Deposito)</a>
@@ -210,6 +213,9 @@
                     <a href="{{ route('transparency.gcg') }}" class="block py-1">Laporan Tata Kelola (GCG)</a>
                     <a href="{{ route('transparency.lps') }}" class="block py-1">Tingkat Bunga Penjaminan LPS</a>
                     <a href="{{ route('transparency.riplay') }}" class="block py-1">Ringkasan Informasi Produk (RIPLAY)</a>
+                    <a href="{{ route('about.csr') }}" class="block px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-[#0066B2]">
+    Tanggung Jawab Sosial (CSR)
+</a>
                 </div>
             </details>
 
@@ -219,9 +225,9 @@
                     <svg class="w-3.5 h-3.5 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
                 <div class="pl-3 py-1 space-y-1.5 text-slate-300 text-[11px]">
-                    <a href="{{ route('home') }}#warta" class="block py-1">Berita & Agenda</a>
-                    <a href="{{ route('home') }}#edukasi" class="block py-1">Edukasi & Literasi Keuangan</a>
-                    <a href="{{ route('home') }}#pengumuman" class="block py-1">Pengumuman & Lelang Agunan</a>
+                    <a href="{{ route('media.news') }}" class="block py-1">Berita & Agenda</a>
+                    <a href="{{ route('media.education') }}" class="block py-1">Edukasi & Literasi Keuangan</a>
+                    <a href="{{ route('media.announcements') }}" class="block py-1">Pengumuman & Lelang Agunan</a>
                 </div>
             </details>
 
@@ -236,7 +242,7 @@
                     <a href="{{ route('services.complaint') }}" class="block py-1">Pengaduan Nasabah (Form Online)</a>
                     <a href="{{ route('services.ticket') }}" class="block py-1">Cek Status Tiket Pengaduan</a>
                     <a href="{{ route('services.wbs') }}" class="block py-1 text-rose-300 font-bold">Whistleblowing System (WBS)</a>
-                    <a href="{{ route('home') }}#karier" class="block py-1">Karier / Rekrutmen</a>
+                    <a href="{{ route('services.career') }}" class="block py-1">Karier / Rekrutmen</a>
                 </div>
             </details>
 

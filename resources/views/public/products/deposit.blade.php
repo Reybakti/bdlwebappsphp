@@ -61,6 +61,7 @@
             @forelse($depositProducts as $product)
                 @php
                     $param = $product->simulationParam;
+                    $rateDisplay = $param ? number_format($param->base_interest_rate_pa, 2) . '% p.a.' : ($lpsRate ? number_format($lpsRate->rate_idr, 2) . '% p.a.' : '6.75% p.a.');
                 @endphp
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:border-bdl-primary hover:shadow-md transition duration-200">
                     <div class="space-y-4">
@@ -68,8 +69,8 @@
                             <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded bg-[#D6E4F0]/50 text-bdl-navy">
                                 {{ $product->category->name ?? 'Deposito' }}
                             </span>
-                            <span class="text-xs font-num font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                Suku Bunga LPS Aktif
+                            <span class="text-xs font-num font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                                {{ $rateDisplay }}
                             </span>
                         </div>
 
@@ -87,7 +88,9 @@
                             </div>
                             <div class="flex justify-between">
                                 <span>Pilihan Jangka Waktu:</span>
-                                <strong class="text-bdl-navy">1, 3, 6, 12 Bulan</strong>
+                                <strong class="text-bdl-navy">
+                                    {{ $param ? $param->min_tenor_months . ' - ' . $param->max_tenor_months . ' Bulan' : '1, 3, 6, 12 Bulan' }}
+                                </strong>
                             </div>
                             <div class="flex justify-between">
                                 <span>Metode Perpanjangan:</span>
@@ -127,10 +130,20 @@
     <!-- 2. Kalkulator Simulasi Deposito Interaktif -->
     @php
         $depositParam = $primaryDeposit?->simulationParam;
-        $depMinAmount = $depositParam?->min_amount ?? 1000000;
-        $depMaxAmount = $depositParam?->max_amount ?? 500000000;
-        $depDefaultAmount = 50000000;
-        $currentLpsRate = $lpsRate?->rate_idr ?? ($depositParam?->base_interest_rate_pa ?? 6.75);
+        $depMinAmount = (float)($depositParam?->min_amount ?? 1000000);
+        $depMaxAmount = (float)($depositParam?->max_amount ?? 500000000);
+        $depDefaultAmount = max($depMinAmount, min(50000000, $depMaxAmount));
+        $currentDepRate = (float)($depositParam?->base_interest_rate_pa ?? ($lpsRate?->rate_idr ?? 6.75));
+
+        // Rentang Tenor Dinamis
+        $depMinTenor = (int)($depositParam?->min_tenor_months ?? 1);
+        $depMaxTenor = (int)($depositParam?->max_tenor_months ?? 12);
+        $candidateDepTenors = [1, 3, 6, 12, 24];
+        $availableDepTenors = array_values(array_filter($candidateDepTenors, fn($t) => $t >= $depMinTenor && $t <= $depMaxTenor));
+        if (empty($availableDepTenors)) {
+            $availableDepTenors = [$depMinTenor, $depMaxTenor];
+        }
+        $initialActiveTenor = in_array(3, $availableDepTenors) ? 3 : $availableDepTenors[0];
     @endphp
 
     <section id="kalkulator-deposito" class="scroll-mt-36 p-8 lg:p-12 rounded-3xl bg-slate-50 border border-slate-200 space-y-8">
@@ -150,7 +163,7 @@
                         {{ $primaryDeposit->name ?? 'Deposito Berjangka BDL' }}
                     </span>
                     <span class="text-xs font-num font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
-                        TBP LPS: {{ number_format($currentLpsRate, 2) }}% p.a.
+                        Bunga: {{ number_format($currentDepRate, 2) }}% p.a.
                     </span>
                 </div>
 
@@ -165,25 +178,27 @@
                     <input type="range" id="depRange" 
                            min="{{ $depMinAmount }}" 
                            max="{{ $depMaxAmount }}" 
-                           step="5000000" 
+                           step="1000000" 
                            value="{{ $depDefaultAmount }}"
                            class="w-full accent-bdl-primary h-2 bg-slate-200 rounded-lg cursor-pointer" 
                            oninput="recalculateDeposit()">
                     <div class="flex justify-between text-[10px] text-slate-400 font-num">
                         <span>Rp{{ number_format($depMinAmount, 0, ',', '.') }}</span>
-                        <span>Rp250.000.000</span>
+                        <span>Rp{{ number_format(($depMinAmount + $depMaxAmount) / 2, 0, ',', '.') }}</span>
                         <span>Rp{{ number_format($depMaxAmount, 0, ',', '.') }}</span>
                     </div>
                 </div>
 
-                <!-- Pilihan Tenor Penempatan -->
+                <!-- Pilihan Tenor Penempatan Dinamis -->
                 <div class="space-y-2">
                     <label class="block text-xs font-bold text-slate-700">Jangka Waktu Penempatan:</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button type="button" onclick="setDepTenor(1, this)" class="dep-tenor-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:border-bdl-primary transition font-num">1 Bulan</button>
-                        <button type="button" onclick="setDepTenor(3, this)" class="dep-tenor-btn py-2 text-xs font-semibold rounded-lg border border-bdl-primary bg-bdl-navy text-white transition shadow-sm font-num">3 Bulan</button>
-                        <button type="button" onclick="setDepTenor(6, this)" class="dep-tenor-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:border-bdl-primary transition font-num">6 Bulan</button>
-                        <button type="button" onclick="setDepTenor(12, this)" class="dep-tenor-btn py-2 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:border-bdl-primary transition font-num">12 Bulan</button>
+                    <div class="grid grid-cols-{{ count($availableDepTenors) > 4 ? 4 : count($availableDepTenors) }} gap-2">
+                        @foreach($availableDepTenors as $tOption)
+                            <button type="button" onclick="setDepTenor({{ $tOption }}, this)" 
+                                    class="dep-tenor-btn py-2 text-xs font-semibold rounded-lg border {{ $tOption === $initialActiveTenor ? 'border-bdl-primary bg-bdl-navy text-white shadow-sm' : 'border-slate-200 text-slate-600 hover:border-bdl-primary' }} transition font-num">
+                                {{ $tOption }} Bulan
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
@@ -200,7 +215,9 @@
                     <div id="netInterestTotalDisplay" class="text-3xl sm:text-4xl font-extrabold font-num text-emerald-400 mt-1">
                         Rp0
                     </div>
-                    <span id="tenorSummaryLabel" class="text-[10px] text-slate-400 block mt-0.5">selama 3 bulan penempatan</span>
+                    <span id="tenorSummaryLabel" class="text-[10px] text-slate-400 block mt-0.5">
+                        selama {{ $initialActiveTenor }} bulan penempatan
+                    </span>
                 </div>
 
                 <div class="space-y-3 pt-4 border-t border-white/10 text-xs">
@@ -210,7 +227,7 @@
                     </div>
                     <div class="flex justify-between text-slate-300">
                         <span>Potongan PPh 20%:</span>
-                        <strong id="taxTotalDisplay" class="font-num text-rose-300">- Rp0</strong>
+                        <strong id="taxTotalDisplay" class="font-num text-rose-300">Rp0</strong>
                     </div>
                     <div class="flex justify-between text-slate-300 pt-2 border-t border-white/10">
                         <span>Bunga Bersih per Bulan:</span>
@@ -223,7 +240,7 @@
                 </div>
 
                 <div class="p-3 bg-white/5 rounded-xl border border-white/10 text-[11px] text-slate-300 leading-relaxed">
-                    *Bunga bulanan dapat ditransfer langsung ke rekening Tabungan SIMAPAN Anda atau ditambahkan kembali ke pokok deposito (ARO).
+                    *Bunga bulanan dapat ditransfer langsung ke rekening Tabungan Anda atau ditambahkan kembali ke pokok deposito (ARO).
                 </div>
 
                 <a href="{{ route('services.branches') }}" class="block text-center text-xs font-bold text-bdl-navy bg-white hover:bg-bdl-soft py-3 rounded-lg transition shadow">
@@ -249,7 +266,7 @@
             <div class="space-y-3">
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
                     <span class="text-[11px] text-slate-500 font-semibold uppercase block">Suku Bunga Penjaminan BPR Aktif:</span>
-                    <span class="text-2xl font-extrabold font-num text-bdl-navy block">{{ number_format($currentLpsRate, 2) }}% p.a.</span>
+                    <span class="text-2xl font-extrabold font-num text-bdl-navy block">{{ number_format($lpsRate?->rate_idr ?? 6.75, 2) }}% p.a.</span>
                     <span class="text-[10px] text-slate-400 block font-num">
                         Periode: {{ $lpsRate ? \Carbon\Carbon::parse($lpsRate->effective_start_date)->translatedFormat('d M Y') : 'Aktif' }} s/d {{ $lpsRate ? \Carbon\Carbon::parse($lpsRate->effective_end_date)->translatedFormat('d M Y') : 'Sekarang' }}
                     </span>
@@ -271,7 +288,7 @@
                     <span class="text-[10px] text-slate-400 block">per nasabah per bank terdaftar</span>
                 </div>
                 <p>
-                    PT BPR Bank Daerah Lamongan (Perseroda) senantiasa mematuhi regulasi batas suku bunga penjaminan agar seluruh dana deposito nasabah terlindungi 100% oleh pemerintah Republik Indonesia melalui LPS.
+                    {{ $profile->name ?? 'PT BPR Bank Daerah Lamongan (Perseroda)' }} senantiasa mematuhi regulasi batas suku bunga penjaminan agar seluruh dana deposito nasabah terlindungi 100% oleh pemerintah Republik Indonesia melalui LPS.
                 </p>
             </div>
         </div>
@@ -334,8 +351,8 @@
 
 @section('scripts')
 <script>
-const lpsInterestRatePa = parseFloat("{{ $currentLpsRate }}") / 100;
-let activeDepTenor = 3;
+const depositInterestRatePa = parseFloat("{{ $currentDepRate }}") / 100;
+let activeDepTenor = {{ $initialActiveTenor }};
 
 function setDepTenor(tenor, btn) {
     activeDepTenor = tenor;
@@ -344,17 +361,26 @@ function setDepTenor(tenor, btn) {
     });
     btn.className = 'dep-tenor-btn py-2 text-xs font-semibold rounded-lg border border-bdl-primary bg-bdl-navy text-white transition shadow-sm font-num';
     
-    document.getElementById('tenorSummaryLabel').innerText = `selama ${tenor} bulan penempatan`;
+    const summaryLabel = document.getElementById('tenorSummaryLabel');
+    if (summaryLabel) {
+        summaryLabel.innerText = `selama ${tenor} bulan penempatan`;
+    }
     recalculateDeposit();
 }
 
 function recalculateDeposit() {
-    const P = parseFloat(document.getElementById('depRange').value);
+    const rangeInput = document.getElementById('depRange');
+    if (!rangeInput) return;
+
+    const P = parseFloat(rangeInput.value);
     const n = activeDepTenor;
-    const r = lpsInterestRatePa;
+    const r = depositInterestRatePa;
 
     const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
-    document.getElementById('depAmountDisplay').innerText = formatter.format(P);
+    const amountDisplay = document.getElementById('depAmountDisplay');
+    if (amountDisplay) {
+        amountDisplay.innerText = formatter.format(P);
+    }
 
     // Bunga Kotor Bulanan = (P * r) / 12
     const monthlyGross = (P * r) / 12;
@@ -368,12 +394,35 @@ function recalculateDeposit() {
     const totalNet = totalGross - totalTax;
     const finalBalance = P + totalNet;
 
-    // Update Tampilan Box Output
-    document.getElementById('netInterestTotalDisplay').innerText = formatter.format(totalNet);
-    document.getElementById('grossTotalDisplay').innerText = formatter.format(totalGross);
-    document.getElementById('taxTotalDisplay').innerText = '- ' + formatter.format(totalTax);
-    document.getElementById('netMonthlyDisplay').innerText = formatter.format(monthlyNet);
-    document.getElementById('finalBalanceDisplay').innerText = formatter.format(finalBalance);
+    // Update Output
+    const netTotalEl = document.getElementById('netInterestTotalDisplay');
+    if (netTotalEl) netTotalEl.innerText = formatter.format(totalNet);
+
+    const grossTotalEl = document.getElementById('grossTotalDisplay');
+    if (grossTotalEl) grossTotalEl.innerText = formatter.format(totalGross);
+
+    const taxTotalEl = document.getElementById('taxTotalDisplay');
+    if (taxTotalEl) {
+        taxTotalEl.innerText = isTaxable ? '- ' + formatter.format(totalTax) : 'Rp0 (Bebas Pajak)';
+    }
+
+    const netMonthlyEl = document.getElementById('netMonthlyDisplay');
+    if (netMonthlyEl) netMonthlyEl.innerText = formatter.format(monthlyNet);
+
+    const finalBalanceEl = document.getElementById('finalBalanceDisplay');
+    if (finalBalanceEl) finalBalanceEl.innerText = formatter.format(finalBalance);
+
+    // Update Box Notifikasi Pajak
+    const taxBox = document.getElementById('taxNoticeBox');
+    if (taxBox) {
+        if (isTaxable) {
+            taxBox.className = 'p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed';
+            taxBox.innerHTML = '<strong>Pemberitahuan Pajak:</strong> Nominal deposito &ge; Rp7.500.000,- dikenakan Pajak Penghasilan (PPh Final) atas bunga sebesar <strong>20%</strong> sesuai peraturan perpajakan RI.';
+        } else {
+            taxBox.className = 'p-3.5 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 leading-relaxed';
+            taxBox.innerHTML = '<strong>Bebas Pajak:</strong> Nominal penempatan dana di bawah Rp7.500.000,- <strong>tidak dikenakan pemotongan PPh bunga</strong> (Pajak 0%).';
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
