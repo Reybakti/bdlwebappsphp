@@ -23,7 +23,7 @@
         </div>
     @endif
 
-    <form action="{{ route('admin.profile.update') }}" method="POST" class="space-y-6 text-xs">
+    <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6 text-xs">
         @csrf
         @method('PUT')
 
@@ -233,6 +233,61 @@
                 </div>
             </div>
         </div>
+
+        <!-- KARTU PENGELOLAAN BAGAN STRUKTUR ORGANISASI -->
+<div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-5">
+    <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <div>
+            <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Tata Kelola & Regulasi (GCG)</span>
+            <h2 class="text-base font-extrabold text-[#0A2540]">Bagan Struktur Organisasi Lembaga</h2>
+            <p class="text-slate-400 text-[11px] mt-0.5">Unggah bagan alur komando, dasar hukum penetapan, dan catatan penataan organisasi bank.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label class="block font-bold text-slate-700 mb-1">Nomor Surat Keputusan / Dasar Penetapan</label>
+            <input type="text" name="org_structure_decree" value="{{ old('org_structure_decree', $profile->org_structure_decree) }}" 
+                   placeholder="Contoh: SK Direksi No. 018/SK/DIR/2026"
+                   class="w-full bg-[#F4F7FC] border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#0066B2] focus:bg-white transition text-slate-800 font-mono">
+        </div>
+
+        <div>
+            <label class="block font-bold text-slate-700 mb-1">Tanggal Mulai Berlaku</label>
+            <input type="date" name="org_structure_effective_date" 
+                   value="{{ old('org_structure_effective_date', $profile->org_structure_effective_date ? \Carbon\Carbon::parse($profile->org_structure_effective_date)->format('Y-m-d') : '') }}" 
+                   class="w-full bg-[#F4F7FC] border border-slate-200 rounded-xl px-3.5 py-2.5 focus:outline-none focus:border-[#0066B2] focus:bg-white transition font-mono text-slate-800">
+        </div>
+
+        <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">Unggah Gambar Bagan Struktur Organisasi (JPG, PNG, WebP, SVG - Maks. 5 MB)</label>
+            <input type="file" name="org_chart_image" accept="image/*"
+                   class="w-full text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0066B2]/10 file:text-[#0066B2] hover:file:bg-[#0066B2]/20 cursor-pointer border border-slate-200 rounded-xl p-2 bg-[#F4F7FC]">
+            
+            @if($profile->org_chart_image)
+                <div class="mt-3 flex items-center justify-between p-3 bg-[#F4F7FC] rounded-2xl border border-slate-200 w-full sm:w-fit gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('storage/' . $profile->org_chart_image) }}" alt="Bagan Struktur Aktif" class="w-16 h-12 rounded-lg object-contain bg-white border border-slate-200 p-1">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">Bagan Struktur Aktif</span>
+                            <span class="text-[10px] text-slate-400 font-mono">{{ basename($profile->org_chart_image) }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ asset('storage/' . $profile->org_chart_image) }}" target="_blank" class="text-xs font-bold text-[#0066B2] hover:underline whitespace-nowrap">
+                        Buka Gambar Penuh &rarr;
+                    </a>
+                </div>
+            @endif
+        </div>
+
+        <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">Catatan Keterangan Struktur & Tata Hubungan Kerja</label>
+            <textarea name="org_structure_notes" rows="3" 
+                      placeholder="Uraikan pedoman penugasan, hubungan kerja antar satuan kerja kepatuhan, SKAI, dan komite dewan..."
+                      class="w-full bg-[#F4F7FC] border border-slate-200 rounded-xl p-3.5 focus:outline-none focus:border-[#0066B2] focus:bg-white transition text-slate-800 leading-relaxed">{{ old('org_structure_notes', $profile->org_structure_notes) }}</textarea>
+        </div>
+    </div>
+</div>
 
         <div class="flex items-center justify-end gap-3 pt-2">
             <button type="submit" class="px-7 py-3 bg-[#0066B2] hover:bg-[#0A2540] text-white text-xs font-bold rounded-xl transition shadow-md shadow-[#0066B2]/20">

@@ -6,6 +6,7 @@ use App\Models\Article;
 use App\Models\Banner;
 use App\Models\Branch;
 use App\Models\CompanyProfile;
+use App\Models\PortalLink;
 use App\Models\CsrProgram;
 use App\Models\FinancialReport;
 use App\Models\LpsInterestRate;
@@ -468,4 +469,22 @@ class PublicController extends Controller
 
         return view('public.csr.detail', compact('profile', 'program', 'otherPrograms'));
     }
+    public function aboutStructure()
+{
+    $profile = CompanyProfile::first();
+    $directors = ManagementMember::where('type', 'DIRECTOR')->where('is_active', true)->orderBy('order_index')->get();
+    $commissioners = ManagementMember::where('type', 'COMMISSIONER')->where('is_active', true)->orderBy('order_index')->get();
+
+    return view('public.about.structure', compact('profile', 'directors', 'commissioners'));
+}
+public function portalIndex()
+{
+    $portals = PortalLink::where('is_active', true)
+        ->orderBy('order_index')
+        ->get()
+        ->groupBy('category');
+
+    return view('public.portals.index', compact('portals'));
+}
+
 }

@@ -28,9 +28,9 @@ class CompanyProfileAdminController extends Controller
     public function update(Request $request)
     {
         $profile = CompanyProfile::firstOrFail();
-        $oldSnapshot =$profile->toArray();
+        $oldSnapshot = $profile->toArray();
 
-        $validated =$request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:150',
             'head_office_address' => 'required|string',
             'phone' => 'required|string|max:50',
@@ -40,11 +40,17 @@ class CompanyProfileAdminController extends Controller
             'mission' => 'nullable|string',
             'ojk_lps_statement' => 'required|string',
 
-            // Validasi Video
+            // Validasi Video Profil
             'video_title' => 'nullable|string|max:150',
             'video_source_type' => 'required|in:URL,UPLOAD',
             'video_url' => 'nullable|required_if:video_source_type,URL|url|max:255',
             'video_file' => 'nullable|file|mimes:mp4,webm,ogg|max:61440', // Maksimal 60MB
+
+            // Validasi Struktur Organisasi (POJK Tata Kelola GCG)
+            'org_chart_image' => 'nullable|image|mimes:jpeg,png,jpg,webp,svg|max:5120', // Maksimal 5MB
+            'org_structure_decree' => 'nullable|string|max:150',
+            'org_structure_effective_date' => 'nullable|date',
+            'org_structure_notes' => 'nullable|string|max:3000',
 
             // Validasi Media Sosial & Humas
             'facebook_url' => 'nullable|url|max:255',
@@ -61,16 +67,29 @@ class CompanyProfileAdminController extends Controller
             'video_url.url' => 'Tautan video harus berupa URL valid.',
             'video_file.mimes' => 'Format berkas video harus MP4, WebM, atau OGG.',
             'video_file.max' => 'Ukuran berkas video maksimal 60 MB.',
+            'org_chart_image.image' => 'Berkas bagan struktur organisasi harus berupa gambar.',
+            'org_chart_image.mimes' => 'Format gambar bagan harus JPG, PNG, WebP, atau SVG.',
+            'org_chart_image.max' => 'Ukuran gambar bagan organisasi maksimal 5 MB.',
         ]);
 
-        // Simpan Berkas Video jika ada upload baru
+        // 1. Simpan Berkas Video jika ada upload baru
         if ($request->hasFile('video_file')) {
             if ($profile->video_file_path && Storage::disk('public')->exists($profile->video_file_path)) {
                 Storage::disk('public')->delete($profile->video_file_path);
             }
 
-            $videoPath =$request->file('video_file')->store('company/videos', 'public');
-            $validated['video_file_path'] =$videoPath;
+            $videoPath = $request->file('video_file')->store('company/videos', 'public');
+            $validated['video_file_path'] = $videoPath;
+        }
+
+        // 2. Simpan Bagan Struktur Organisasi jika ada upload baru
+        if ($request->hasFile('org_chart_image')) {
+            if ($profile->org_chart_image && Storage::disk('public')->exists($profile->org_chart_image)) {
+                Storage::disk('public')->delete($profile->org_chart_image);
+            }
+
+            $chartPath = $request->file('org_chart_image')->store('company/structure', 'public');
+            $validated['org_chart_image'] = $chartPath;
         }
 
         $profile->update($validated);
@@ -78,7 +97,7 @@ class CompanyProfileAdminController extends Controller
         ActivityLogger::log(
             'COMPANY_PROFILE',
             'UPDATE',
-            'Memperbarui data profil lembaga, video profil, dan kontak media',
+            'Memperbarui profil lembaga, video profil, bagan struktur organisasi, dan kontak media resmi',
             [
                 'before' => $oldSnapshot,
                 'after' => $profile->fresh()->toArray(),
@@ -86,6 +105,6 @@ class CompanyProfileAdminController extends Controller
         );
 
         return redirect()->route('admin.profile.index')
-            ->with('success', 'Profil lembaga dan pengaturan video profil berhasil disimpan.');
+            ->with('success', 'Profil lembaga, bagan struktur organisasi, dan pengaturan media berhasil disimpan.');
     }
 }

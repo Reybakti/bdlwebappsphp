@@ -124,6 +124,7 @@
                     <li><a href="{{ route('media.education') }}" class="hover:text-white transition">Edukasi & Literasi Keuangan</a></li>
                     <li><a href="{{ route('media.announcements') }}" class="hover:text-white transition">Pengumuman & Lelang Agunan</a></li>
                     <li><a href="{{ route('services.career') }}" class="hover:text-white transition font-medium text-bdl-soft">Karier & Rekrutmen</a></li>
+                    <li><a href="{{ route('about.structure') }}" class="hover:text-white transition">Struktur Organisasi</a></li>
                 </ul>
 
                 <!-- Ikon Media Sosial Resmi Dinamis dari Database -->
@@ -197,7 +198,7 @@
                 <span class="text-white/20">•</span>
                 <a href="{{ route('home') }}#syarat-ketentuan" class="hover:text-white transition">Syarat & Ketentuan</a>
                 <span class="text-white/20">•</span>
-                <a href="{{ route('home') }}#peta-situs" class="hover:text-white transition">Peta Situs (Sitemap)</a>
+                <a href="{{ route('public.portals.index') }}" class="hover:text-white transition">Peta Situs & Portal Direktori</a>
             </div>
         </div>
 

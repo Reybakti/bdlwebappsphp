@@ -85,6 +85,9 @@
                             <a href="{{ route('about.profile') }}#visi-misi" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Visi, Misi & Budaya Kerja</a>
                             <a href="{{ route('about.management') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Manajemen (Direksi & Dekom)</a>
                             <a href="{{ route('about.profile') }}#legalitas" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Legalitas & Penghargaan</a>
+                            <a href="{{ route('about.structure') }}" class="block px-4 py-2 hover:bg-slate-50 text-slate-700 transition">
+    Struktur Organisasi
+</a>
                         </div>
                     </div>
 
@@ -130,6 +133,7 @@
                             <a href="{{ route('media.news') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Berita & Agenda</a>
                             <a href="{{ route('media.education') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Edukasi & Literasi Keuangan</a>
                             <a href="{{ route('media.announcements') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Pengumuman & Lelang Agunan</a>
+                            <a href="{{ route('public.portals.index') }}" class="block px-4 py-2 hover:bg-slate-50 hover:text-bdl-primary transition text-xs font-medium">Peta Situs & Portal Direktori</a>
                         </div>
                     </div>
 
@@ -187,6 +191,9 @@
                     <a href="{{ route('about.profile') }}#visi-misi" class="block py-1">Visi, Misi & Budaya Kerja</a>
                     <a href="{{ route('about.management') }}" class="block py-1">Manajemen (Direksi & Dekom)</a>
                     <a href="{{ route('about.profile') }}#legalitas" class="block py-1">Legalitas & Penghargaan</a>
+                    <a href="{{ route('about.structure') }}" class="block px-4 py-2 hover:bg-slate-50 text-slate-700 transition">
+    Struktur Organisasi
+</a>
                 </div>
             </details>
 
@@ -228,6 +235,7 @@
                     <a href="{{ route('media.news') }}" class="block py-1">Berita & Agenda</a>
                     <a href="{{ route('media.education') }}" class="block py-1">Edukasi & Literasi Keuangan</a>
                     <a href="{{ route('media.announcements') }}" class="block py-1">Pengumuman & Lelang Agunan</a>
+                    <a href="{{ route('public.portals.index') }}" class="block py-1">Peta Situs & Portal Direktori</a>
                 </div>
             </details>
 

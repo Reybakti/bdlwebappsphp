@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ProductAdminController;
 use App\Http\Controllers\Admin\SimulationParamAdminController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Admin\WbsAdminController;
+use App\Http\Controllers\Admin\PortalLinkAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,7 @@ Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::prefix('tentang-kami')->group(function () {
     Route::get('/profil', [PublicController::class, 'aboutProfile'])->name('about.profile');
     Route::get('/manajemen', [PublicController::class, 'aboutManagement'])->name('about.management');
+    Route::get('/struktur-organisasi', [PublicController::class, 'aboutStructure'])->name('about.structure'); // Rute Baru
     Route::get('/csr', [PublicController::class, 'csrIndex'])->name('about.csr');
     Route::get('/csr/{slug}', [PublicController::class, 'csrDetail'])->name('about.csr.detail');
 });
@@ -80,6 +82,9 @@ Route::prefix('layanan')->group(function () {
     Route::get('/karier/{slug}', [PublicController::class, 'careerDetail'])->name('services.career.detail');
     Route::post('/karier/{slug}/lamar', [PublicController::class, 'careerApply'])->name('services.career.apply');
 });
+
+Route::get('/portal-informasi', [PublicController::class, 'portalIndex'])->name('public.portals.index');
+Route::get('/peta-situs', [PublicController::class, 'portalIndex'])->name('public.sitemap');
 
 /*
 |--------------------------------------------------------------------------
@@ -170,6 +175,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/careers/{id}/edit', [CareerAdminController::class, 'edit'])->name('careers.edit');
             Route::put('/careers/{id}', [CareerAdminController::class, 'update'])->name('careers.update');
             Route::delete('/careers/{id}', [CareerAdminController::class, 'destroy'])->name('careers.destroy');
+            Route::resource('portals', PortalLinkAdminController::class)->except(['show']);
         });
 
         // ========================================================

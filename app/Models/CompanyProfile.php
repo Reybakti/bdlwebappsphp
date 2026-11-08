@@ -10,32 +10,38 @@ class CompanyProfile extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'history',
-        'vision',
-        'mission',
-        'phone',
-        'email',
-        'head_office_address',
-        'ojk_lps_statement',
+    'name',
+    'history',
+    'vision',
+    'mission',
+    'phone',
+    'email',
+    'head_office_address',
+    'ojk_lps_statement',
 
-        // Video Profil
-        'video_title',
-        'video_source_type',
-        'video_url',
-        'video_file_path',
+    // Video Profil
+    'video_title',
+    'video_source_type',
+    'video_url',
+    'video_file_path',
 
-        // Media Sosial & Humas
-        'facebook_url',
-        'instagram_url',
-        'youtube_url',
-        'linkedin_url',
-        'tiktok_url',
-        'whatsapp_hotline',
-        'media_contact_person',
-        'media_contact_phone',
-        'media_contact_email',
-    ];
+    // Struktur Organisasi
+    'org_chart_image',
+    'org_structure_decree',
+    'org_structure_effective_date',
+    'org_structure_notes',
+
+    // Media Sosial & Humas
+    'facebook_url',
+    'instagram_url',
+    'youtube_url',
+    'linkedin_url',
+    'tiktok_url',
+    'whatsapp_hotline',
+    'media_contact_person',
+    'media_contact_phone',
+    'media_contact_email',
+];
 
     /**
      * Konversi URL YouTube biasa ke format Embed URL
